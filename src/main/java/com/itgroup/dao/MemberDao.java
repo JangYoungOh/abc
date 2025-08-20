@@ -6,23 +6,70 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-//데이터 베이스와 직접 연동하여 CRUD 작업을 수행해주는 DAO 클래스
+// 데이터 베이스와 직접 연동하여 CRUD 작업을 수행해주는 DAO 클래스
 public class MemberDao {
     public MemberDao() {
-        //드라이버 관련 OracldDriver클래스는 ojdbc6.jar 파일에 포함되어 있는 자바 클래스입니다.
+        // 드라이버 관련 OracleDriver 클래스는 ojdbc6.jar 파일에 포함되어 있는 자바 클래스입니다.
         String driver = "oracle.jdbc.driver.OracleDriver";
+
         try {
-            Class.forName(driver); //동적 객체 생성하는 문법입니다.
+            Class.forName(driver); // 동적 객체 생성하는 문법입니다.
 
         } catch (ClassNotFoundException e) {
             System.out.println("해당 드라이버가 존재하지 않습니다.");
             e.printStackTrace();
-
         }
     }
 
+
+    public int insertData(Member bean) {
+        // 웹 페이지에서 회원 정보를 입력하고 '가입' 버튼을 눌렀습니다.
+        int cnt = -1;
+
+        String sql = "insert into members(id, name, password, gender, birth, marriage, salary, address, manager)";
+        sql += " values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try{
+            conn = this.getConnection();
+            pstmt = conn.prepareStatement(sql);
+
+            //id, name, password, gender, birth, marriage, salary, address, manager
+            pstmt.setString(1, bean.getId());
+            pstmt.setString(1, bean.getName());
+            pstmt.setString(1, bean.getPassword());
+            pstmt.setString(1, bean.getGender());
+            pstmt.setString(1, bean.getBirth());
+            pstmt.setString(1, bean.getMarriage());
+            pstmt.setInt(1, bean.getSalary());
+            pstmt.setString(1, bean.getAddress());
+            pstmt.setString(1, bean.getManager());
+
+            cnt = pstmt.executeUpdate();
+            conn.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            try{
+                conn.rollback();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
+        }finally{
+            try{
+                if(pstmt != null){pstmt.close();}
+                if(conn != null){conn.close();}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return cnt;
+    }
+
     public Connection getConnection() {
-        Connection conn = null; //접속 객체
+        Connection conn = null; // 접속 객체
 
         String url = "jdbc:oracle:thin:@localhost:1521:xe";
         String id = "oraman";
@@ -30,6 +77,7 @@ public class MemberDao {
 
         try {
             conn = DriverManager.getConnection(url, id, password);
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -38,13 +86,13 @@ public class MemberDao {
     }
 
     public int getSize() {
-        String sql = "select count(*) as cnt from members ";
+        String sql = "select count(*) as cnt from members  ";
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        Connection conn = null; // 접속 객체 구하기
-        int cnt = 0; //검색된 회원 명수
+        Connection conn = null;
+        int cnt = 0; // 검색된 회원 명수
         try {
-            conn = this.getConnection();
+            conn = this.getConnection(); // 접속 객체 구하기
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
 
@@ -76,23 +124,22 @@ public class MemberDao {
     }
 
     public Member getMemberOne(String id) {
-        //로그인한 사용자 id 정보를 이용하여 해당 사용자의 정보를 bean 형태로 반환해줍니다.
+        // 로그인 id 정보를 이용하여 해당 사용자의 정보를 bean 형태로 반환해줍니다.
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        Member bean = null; //찾고자 하는 회원의 정보
+        Member bean = null; // 찾고자하는 회원의 정보
 
-        String sql = "select * from members where id = ?";
+        String sql = "select * from members where id = ? ";
 
         try {
             conn = this.getConnection();
             pstmt = conn.prepareStatement(sql);
 
-
             pstmt.setString(1, id);
             rs = pstmt.executeQuery();
 
-            if(rs.next()){//   1 건 발견됨
+            if (rs.next()) { // 1건 발견됨
                 bean = new Member();
                 bean.setId(rs.getString("id"));
                 bean.setName(rs.getString("name"));
@@ -121,22 +168,25 @@ public class MemberDao {
                 ex.printStackTrace();
             }
         }
+
         return bean;
     }
 
-    public int deleteData(String id) { //기본키를 사용하여 회원 탈퇴를 시도합니다.
-        int cnt = -1;
-        String sql = "delete from members where id = ?";
+    public int deleteData(String id) { // 기본키를 사용하여 회원 탈퇴를 시도합니다.
+        int cnt = -1 ;
+        String sql = "delete from members where id = ? " ;
+
         PreparedStatement pstmt = null;
         Connection conn = null;
 
-        try{conn = this.getConnection();
+        try{
+            conn = this.getConnection();
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1,id);
-            cnt= pstmt.executeUpdate();
+            pstmt.setString(1, id);
+
+            cnt = pstmt.executeUpdate() ;
 
             conn.commit();
-
         }catch (Exception ex){
             try{
                 conn.rollback();
@@ -146,10 +196,10 @@ public class MemberDao {
             ex.printStackTrace();
         }finally{
             try{
-                if(pstmt != null){
+                if (pstmt != null) {
                     pstmt.close();
                 }
-                if(conn != null){
+                if (conn != null) {
                     conn.close();
                 }
             }catch (Exception ex){
@@ -157,28 +207,27 @@ public class MemberDao {
             }
         }
 
-        return cnt;
+        return cnt ;
     }
 
     public List<Member> selectAll() {
         List<Member> members = new ArrayList<Member>();
-        PreparedStatement pstmt = null ;
+        PreparedStatement pstmt = null;
         ResultSet rs = null;
         Connection conn = null;
 
-        String sql = "select * from members order by name asc";
+        String sql = "select * from members order by name asc ";
 
-
-        try{
+        try {
             conn = this.getConnection();
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
 
-            while(rs.next()){
-                //System.out.println(rs.getString(2));
-                //System.out.println(rs.getInt(7));
-                //System.out.println(rs.getString("id"));
-                //System.out.println(rs.getString("gender"));
+            while (rs.next()) {
+//                System.out.println(rs.getString(2));
+//                System.out.println(rs.getInt(7));
+//                System.out.println(rs.getString("id"));
+//                System.out.println(rs.getString("gender"));
 
                 Member bean = new Member();
                 bean.setId(rs.getString("id"));
@@ -192,30 +241,80 @@ public class MemberDao {
                 bean.setManager(rs.getString("manager"));
 
                 members.add(bean);
-
             }
 
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
-        }finally{
-            try{
-                if(rs != null){rs.close();}
-                if(pstmt != null){pstmt.close();}
-                if(conn != null){conn.close();}
-            } catch(Exception ex){
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
+
         return members;
     }
 
     public List<Member> findByGender(String gender) {
-        //성별 컬럼 gender을 사용하여 특정 성별의 회원들만 조회합니다.
-        String sql = "select * from members where gender = ?";
+        // 성별 컬럼 gender을 사용하여 특정 성별의 회원들만 조회합니다.
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        Connection conn = null;
+
+        String sql = "select * from members where gender = ? ";
+
         List<Member> members = new ArrayList<Member>();
+
+        try {
+            conn = this.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, gender);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Member bean = new Member();
+                bean.setId(rs.getString("id"));
+                bean.setName(rs.getString("name"));
+                bean.setPassword(rs.getString("password"));
+                bean.setGender(rs.getString("gender"));
+                bean.setBirth(rs.getString("birth"));
+                bean.setMarriage(rs.getString("marriage"));
+                bean.setSalary(rs.getInt("salary"));
+                bean.setAddress(rs.getString("address"));
+                bean.setManager(rs.getString("manager"));
+
+                members.add(bean);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (pstmt != null) {
+                    pstmt.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
         return members;
     }
-
 
 
 }
