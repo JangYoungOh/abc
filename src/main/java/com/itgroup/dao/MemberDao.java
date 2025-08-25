@@ -10,34 +10,21 @@ import java.util.List;
 public class MemberDao extends SuperDao{
     public MemberDao() {
 
-        }
     }
 
     public int updateData(Member bean) {
-    //수정된 나의 정보 bean을 사용하여 데이터 베이스에 수정합니다.
-        int cnt= -1;
+        // 수정된 나의 정보 bean를 사용하여 데이터 베이스에 수정합니다.
+        int cnt = -1 ;
 
-        String sql = "update members set name = ?, password = ?, gender = ?, birth = ?, marriage = ?, salary = ?, address = ?, manager = ?";
-        sql += " where id = ? ";
+        String sql = "update members set name = ?, password = ?, gender = ?, birth = ?, marriage = ?, salary = ?, address = ?, manager = ?" ;
+        sql += " where id = ? " ;
 
-        return cnt;
-    }
-
-
-    public int insertData(Member bean) {
-        // 웹 페이지에서 회원 정보를 입력하고 '가입' 버튼을 눌렀습니다.
-        int cnt = -1;
-
-        String sql = "update members set name = ?, password = ?, gender = ?, birth = ?, marriage = ?, salary = ?, address = ?, manager = ?";
-        sql += " where id = ? ";
-
-        Connection conn = null;
-        PreparedStatement pstmt = null;
+        Connection conn = null ;
+        PreparedStatement pstmt = null ;
 
         try{
-            conn = super.getConnection();
+            conn = super.getConnection() ;
             pstmt = conn.prepareStatement(sql);
-
 
             pstmt.setString(1, bean.getName());
             pstmt.setString(2, bean.getPassword());
@@ -49,7 +36,7 @@ public class MemberDao extends SuperDao{
             pstmt.setString(8, bean.getManager());
             pstmt.setString(9, bean.getId());
 
-            cnt = pstmt.executeUpdate();
+            cnt = pstmt.executeUpdate() ;
             conn.commit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,7 +45,7 @@ public class MemberDao extends SuperDao{
             } catch (Exception e2) {
                 e2.printStackTrace();
             }
-        }finally{
+        }finally {
             try{
                 if(pstmt != null){pstmt.close();}
                 if(conn != null){conn.close();}
@@ -66,8 +53,51 @@ public class MemberDao extends SuperDao{
                 e.printStackTrace();
             }
         }
+        return cnt ;
+    }
 
-        return cnt;
+    public int insertData(Member bean) {
+        // 웹 페이지에서 회원 정보를 입력하고 '가입' 버튼을 눌렀습니다.
+        int cnt = -1 ;
+
+        String sql = "insert into members(id, name, password, gender, birth, marriage, salary, address, manager)" ;
+        sql += " values(?, ?, ?, ?, ?, ?, ?, ?, ?)" ;
+
+        Connection conn = null ;
+        PreparedStatement pstmt = null ;
+
+        try{
+            conn = super.getConnection() ;
+            pstmt = conn.prepareStatement(sql);
+
+            pstmt.setString(1, bean.getId());
+            pstmt.setString(2, bean.getName());
+            pstmt.setString(3, bean.getPassword());
+            pstmt.setString(4, bean.getGender());
+            pstmt.setString(5, bean.getBirth());
+            pstmt.setString(6, bean.getMarriage());
+            pstmt.setInt(7, bean.getSalary());
+            pstmt.setString(8, bean.getAddress());
+            pstmt.setString(9, bean.getManager());
+
+            cnt = pstmt.executeUpdate() ;
+            conn.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            try{
+                conn.rollback();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
+        }finally {
+            try{
+                if(pstmt != null){pstmt.close();}
+                if(conn != null){conn.close();}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return cnt ;
     }
 
     public int getSize() {
@@ -300,7 +330,6 @@ public class MemberDao extends SuperDao{
 
         return members;
     }
-
 
 
 }

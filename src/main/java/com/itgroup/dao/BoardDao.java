@@ -44,7 +44,7 @@ public class BoardDao extends SuperDao {
             }catch (Exception ex){
                 ex.printStackTrace();
             }
-            )
+
         }
 
         return boardList;
